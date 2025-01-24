@@ -13,7 +13,7 @@
 
 ## 📢 Latest Updates
 - 📦 Code, Model checkpoints and dataset will be released soon.
-- **Jan-24-2025**: Technical Report of GeoPixel paper is released [arxiv link]. 🔥🔥
+- **Jan-24-2025**: Technical Report of GeoPixel paper is released [arxiv link](https://arxiv.org/abs/2501.13925). 🔥🔥
 ---
 
 ## <img src="assets/logo.png" height="25">  GeoPixel Overview
@@ -89,7 +89,7 @@ Performance Comparison of GeoPixel in Referring Expression Segmentation on RRSIS
   author={Akashah Shabbir, Mohammed Zumri, Mohammed Bennamoun, Fahad S. Khan, Salman Khan},
   journal={ArXiv},
   year={2025},
-  url={https://arxiv.org/}
+  url={https://arxiv.org/abs/2501.13925}
 }
 ```
 
