@@ -7,7 +7,7 @@
 **Mohamed bin Zayed University of Artificial Intelligence, The University of Western Australia, Linköping University, Australian National University**
 
 [![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://mbzuai-oryx.github.io/GeoPixel/)
-[![paper](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/)
+[![paper](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2501.13925)
 
 ---
 
