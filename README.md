@@ -30,6 +30,15 @@ GeoPixel is a first large multimodal model explicitly designed for high-resoluti
 3. A detailed evaluation benchmark is provided, containing 5,427 validated referring expression-mask pairs and 61,384 annotated objects. The dataset, with detailed descriptions averaging 647 characters, establishes a standard for testing the fine-grained understanding and generation capabilities of remote sensing models.
 
 ---
+## Requirements
+
+- python 3.10 and above
+- pytorch >= 2.3.1, torchvision >= 0.18.1 are recommended
+- CUDA 11.8 and above are recommended (Please follow the instructions [here](https://pytorch.org/get-started/locally/) to install both PyTorch and TorchVision dependencies)
+- [flash-attention2](https://github.com/Dao-AILab/flash-attention) is required for high-resolution usage
+  <br>
+  
+---
 <!-- Architecture -->
 ## Architecture
 
@@ -47,7 +56,6 @@ GeoPixel is fundamentally composed of five key blocks: (1) Adaptive Image Divide
 </p>
 
 We propose a semi-automatic annotation pipeline for creating a remote sensing grounded conversation generation (RS-GCG) dataset. It employs a multi-level hierarchical strategy that includes holistic scene descriptions, individual instance annotations, and group-level semantic representations, enabling a comprehensive understanding of spatial relationships and object-level details. Advanced techniques, such as Set-of-Mark (SOM) prompting combined with spatial and categorical priors, are utilized to enhance the accuracy and granularity of object-specific annotations. 
-
 
 ---
 ## Remote Sensing Grounded Conversation Generation (RS-GCG) 🔍
