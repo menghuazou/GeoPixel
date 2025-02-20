@@ -14,7 +14,7 @@ def rgb_color_text(text, r, g, b):
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description="Chat with GeoPixel")
-    parser.add_argument("--version", default="AkashahS/GeoPixel-7B")
+    parser.add_argument("--version", default="MBZUAI/GeoPixel-7B")
     parser.add_argument("--vis_save_path", default="./vis_output", type=str)
     return parser.parse_args(args)
 
