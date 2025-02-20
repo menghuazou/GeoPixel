@@ -30,9 +30,9 @@ GeoPixel is a first large multimodal model explicitly designed for high-resoluti
 
 ---
 ## Highlights 🏆 
-1. We present GeoPixel, a pixel grounding Large Multimodal Model optimized for high-resolution remote sensing image comprehension. It features adaptive image partitioning into local and global regions, enabling efficient processing of resolutions up to 4K in any aspect ratio.
-2. A rich annotated dataset GeoPixelD, is created that supports Remote Sensing Grounded Conversation Generation RS-GCG. This dataset combines scene-level context and object-level details through a scalable annotation pipeline that uses advanced visual prompting designed for RS imagery.
-3. A detailed evaluation benchmark is provided, containing 5,427 validated referring expression-mask pairs and 61,384 annotated objects. The dataset, with detailed descriptions averaging 647 characters, establishes a standard for testing the fine-grained understanding and generation capabilities of remote sensing models.
+- We present GeoPixel, a pixel grounding Large Multimodal Model optimized for high-resolution remote sensing image comprehension. It features adaptive image partitioning into local and global regions, enabling efficient processing of resolutions up to 4K in any aspect ratio.
+- A rich annotated dataset GeoPixelD, is created that supports Remote Sensing Grounded Conversation Generation RS-GCG. This dataset combines scene-level context and object-level details through a scalable annotation pipeline that uses advanced visual prompting designed for RS imagery.
+- A detailed evaluation benchmark is provided, containing 5,427 validated referring expression-mask pairs and 61,384 annotated objects. The dataset, with detailed descriptions averaging 647 characters, establishes a standard for testing the fine-grained understanding and generation capabilities of remote sensing models.
 
 ---
 ## Requirements
