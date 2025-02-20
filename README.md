@@ -9,7 +9,7 @@
 [![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://mbzuai-oryx.github.io/GeoPixel/)
 [![paper](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2501.13925)
 [![GitHub stars](https://img.shields.io/github/stars/mbzuai-oryx/GeoPixel?color=FF6A07&style=flat)](https://github.com/mbzuai-oryx/GeoPixel/stargazers)
-  [![GitHub license](https://img.shields.io/github/license/mbzuai-oryx/GeoPixel?color=FF6666)](https://github.com/mbzuai-oryx/GeoPixel/blob/main/LICENSE)
+  [![GitHub license](https://img.shields.io/github/license/mbzuai-oryx/GeoPixel?color=FF8080)](https://github.com/mbzuai-oryx/GeoPixel/blob/main/LICENSE)
   
 ---
 
