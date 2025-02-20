@@ -8,6 +8,7 @@
 
 [![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://mbzuai-oryx.github.io/GeoPixel/)
 [![paper](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2501.13925)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-Model-F9D371)](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043)
 [![GitHub stars](https://img.shields.io/github/stars/mbzuai-oryx/GeoPixel?color=FFF359&style=flat)](https://github.com/mbzuai-oryx/GeoPixel/stargazers)
   [![GitHub license](https://img.shields.io/github/license/mbzuai-oryx/GeoPixel?color=FF8080)](https://github.com/mbzuai-oryx/GeoPixel/blob/main/LICENSE)
   
