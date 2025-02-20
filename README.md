@@ -14,7 +14,9 @@
 ---
 
 ## 📢 Latest Updates
-- 📦 Code, Model checkpoints and dataset will be released soon.
+- 📦 dataset will be released soon.
+- 
+- **Feb-20-25**: Our Model checkpoints are released on **_HuggingFace_** [link](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043).
 - **Jan-24-2025**: Technical Report of GeoPixel paper is released [arxiv link](https://arxiv.org/abs/2501.13925). 🔥🔥
 ---
 
