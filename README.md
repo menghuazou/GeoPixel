@@ -38,7 +38,7 @@ GeoPixel is a first large multimodal model explicitly designed for high-resoluti
 
 - python 3.10 and above
 - pytorch >= 2.3.1, torchvision >= 0.18.1 are recommended
-- CUDA 11.8 and above are recommended (Please follow the instructions [here](https://pytorch.org/get-started/locally/) to install both PyTorch and TorchVision dependencies)
+- CUDA 11.8 and above is recommended (Please follow the instructions [here](https://pytorch.org/get-started/locally/) to install both PyTorch and TorchVision dependencies)
 - [flash-attention2](https://github.com/Dao-AILab/flash-attention) is required for high-resolution usage
   <br>
   
