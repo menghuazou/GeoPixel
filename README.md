@@ -21,7 +21,7 @@
 - **Jan-24-2025**: Technical Report of GeoPixel paper is released [arxiv link](https://arxiv.org/abs/2501.13925).
 ---
 
-## <img src="assets/logo.png" height="25">  GeoPixel Overview
+## GeoPixel Overview <img src="assets/logo.png" height="30"> 
 GeoPixel is a first large multimodal model explicitly designed for high-resolution remote sensing (RS) image comprehension and pixel-level grounding. The model processes natural language user queries with RS imagery to generate detailed outputs, incorporating interleaved masks that adapt dynamically to the spatial resolution and complexity of the input.
 
 <p align="center">
