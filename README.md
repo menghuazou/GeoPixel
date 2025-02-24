@@ -51,7 +51,7 @@ GeoPixel is the first large multimodal model explicitly designed for high-resolu
 please check the following guidelines:
 - GeoPixelD data (coming soon)
 - Installation (coming soon)
-- [Training / Finetuning](./docs/finetuning)
+- [Training / Finetuning](./docs/finetune)
 - Inference (coming soon)
 
 ---
