@@ -60,9 +60,9 @@ This means the model will sample 20 samples from `data/GeoPixel.json`
 ### 🚀 Training and Finetuning
 After data preparation, you can use the provided bash scripts (`train.sh`) to train (from base models weights) or (`finetune.sh`) to finetune the pre-trained GeoPixel model. Remember to specify the pre-train model path ($MODEL) and the txt data file path ($DATA) in the bash script.
 
-- For Remote Sensing Grounded Conversation Generation (RS-GCG) task :
+- For Remote Sensing Grounded Conversation Generation (RS-GCG) task : <br>
   set $MODEL to "MBZUAI/GeoPixel-7B"
-- For Referring Remote Sensing Image Segmentation (RRSIS) task :
+- For Referring Remote Sensing Image Segmentation (RRSIS) task : <br>
   set $MODEL to "MBZUAI/GeoPixel-7B-RES"
 
 ### 💾 Saving the Full Model Weights
