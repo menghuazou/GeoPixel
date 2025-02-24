@@ -47,6 +47,16 @@ GeoPixel is the first large multimodal model explicitly designed for high-resolu
   <br>
 
 ---
+
+## 🛠️ Usage
+Follow the guidelines below to set up and use GeoPixel efficiently:
+- GeoPixelD data (coming soon) :📌 This section will provide instructions on how to access and prepare the GeoPixelD dataset
+- Installation Guidelines (coming soon) :⚙️ This will include step-by-step instructions on setting up the necessary dependencies, installing required libraries, and configuring your environment for running GeoPixel.
+- [Training and Finetuning](./docs/finetune) :🚀 This guide explains how to train the GeoPixel model from scratch or fine-tune a pre-trained version for downstream remote sensing tasks.
+- Inference (coming soon): 🔍 This section will describe how to use a trained GeoPixel model for making predictions, running inference on images and generating segmentation masks.
+
+---
+
 <!-- Architecture -->
 ## 🛠️ Architecture
 
@@ -94,15 +104,6 @@ GeoPixel demonstrates a robust capability to interpret referring expressions of 
 </p>
 
 Performance Comparison of GeoPixel in Referring Expression Segmentation on RRSIS-D dataset: The segmentation accuracy based on referring expressions is expressed through the Precision at IoU threshold of 0.5 (P@0.5), Overall Intersection-over-Union (oIoU) and Mean Intersection-over-Union (mIoU).
-
----
-
-## 🛠️ Usage
-Follow the guidelines below to set up and use GeoPixel efficiently:
-- GeoPixelD data (coming soon) :📌 This section will provide instructions on how to access and prepare the GeoPixelD dataset
-- Installation Guidelines (coming soon) :⚙️ This will include step-by-step instructions on setting up the necessary dependencies, installing required libraries, and configuring your environment for running GeoPixel.
-- [Training and Finetuning](./docs/finetune) :🚀 This guide explains how to train the GeoPixel model from scratch or fine-tune a pre-trained version for downstream remote sensing tasks.
-- Inference (coming soon): 🔍 This section will describe how to use a trained GeoPixel model for making predictions, running inference on images and generating segmentation masks.
 
 ---
 
