@@ -1,1 +1,1 @@
-data/isaid.json 0.01
+data/GeoPixelD.json 0.01
