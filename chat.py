@@ -116,7 +116,6 @@ def main(args):
             print("{} has been saved.".format(save_path))
         else:
             print(response.replace("\n", "").replace("  ", " "))
-        break
 
 if __name__ == "__main__":
     args = sys.argv[1:]
