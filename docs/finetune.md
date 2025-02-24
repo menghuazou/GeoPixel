@@ -1,6 +1,6 @@
-# GeoPixel Finetuning
+# GeoPixel Training and Finetuning
 
-You can easily finetune the pretrained [GeoPixel](https://huggingface.co/MBZUAI/GeoPixel-7B) model on downstream tasks using our finetuning scripts. For setup guidance, check out the [installation instructions](../docs/install.md).
+You can easily train or finetune the pretrained [GeoPixel](https://huggingface.co/MBZUAI/GeoPixel-7B) model on downstream tasks using our scripts. For setup guidance, check out the [installation instructions](../docs/install.md).
 
 > The data format of GeoPixel follows the [InternLM-XComposer2.5](https://github.com/InternLM/InternLM-XComposer/tree/main) with additional structure for segmentation masks.
 
