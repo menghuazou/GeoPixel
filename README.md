@@ -15,14 +15,14 @@
 ---
 
 ## 📢  Latest Updates 
-- 📦 Detailed instructions and dataset are comming soon.
+- 📦 Detailed instructions and dataset are coming soon.
 - **Feb-20-2025**: 🚀 GeoPixel training and finetuning code is released. 
-- **Feb-20-2025**: 🔥 Our Model checkpoints are released on **_HuggingFace_** [link](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043). 
+- **Feb-20-2025**: 🔥 Our model checkpoints are released on **_HuggingFace_** [link](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043). 
 - **Jan-24-2025**: 📜 Technical Report of GeoPixel paper is released [arxiv link](https://arxiv.org/abs/2501.13925).
 ---
 
 ## <img src="assets/logo.png" height="30"> GeoPixel Overview  
-GeoPixel is a first large multimodal model explicitly designed for high-resolution remote sensing (RS) image comprehension and pixel-level grounding. The model processes natural language user queries with RS imagery to generate detailed outputs, incorporating interleaved masks that adapt dynamically to the spatial resolution and complexity of the input.
+GeoPixel is the first large multimodal model explicitly designed for high-resolution remote sensing (RS) image comprehension and pixel-level grounding. The model processes natural language user queries with RS imagery to generate detailed outputs, incorporating interleaved masks that adapt dynamically to the spatial resolution and complexity of the input.
 
 <p align="center">
   <img src="assets/overview.png" width="60%">
@@ -45,11 +45,11 @@ GeoPixel is a first large multimodal model explicitly designed for high-resoluti
   
 ---
 ## 🛠️ Usage
-please check the following guidlines:
-- GeoPixelD data (comming soon)
-- Installation (comming soon)
+please check the following guidelines:
+- GeoPixelD data (coming soon)
+- Installation (coming soon)
 - [Training / Finetuning](./docs/finetuning)
-- Inference (comming soon)
+- Inference (coming soon)
 
 ---
 <!-- Architecture -->
