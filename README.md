@@ -14,14 +14,14 @@
   
 ---
 
-## Latest Updates 📢 
+## 📢  Latest Updates 
 - 📦 Detailed instructions and dataset are comming soon.
-- **Feb-20-2025**: GeoPixel training and finetuning code is released. 🔥🔥
-- **Feb-20-2025**: Our Model checkpoints are released on **_HuggingFace_** [link](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043). 🔥🔥
-- **Jan-24-2025**: Technical Report of GeoPixel paper is released [arxiv link](https://arxiv.org/abs/2501.13925).
+- **Feb-20-2025**: 🚀 GeoPixel training and finetuning code is released. 
+- **Feb-20-2025**: 🔥 Our Model checkpoints are released on **_HuggingFace_** [link](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043). 
+- **Jan-24-2025**: 📜 Technical Report of GeoPixel paper is released [arxiv link](https://arxiv.org/abs/2501.13925).
 ---
 
-## GeoPixel Overview <img src="assets/logo.png" height="30"> 
+## <img src="assets/logo.png" height="30"> GeoPixel Overview  
 GeoPixel is a first large multimodal model explicitly designed for high-resolution remote sensing (RS) image comprehension and pixel-level grounding. The model processes natural language user queries with RS imagery to generate detailed outputs, incorporating interleaved masks that adapt dynamically to the spatial resolution and complexity of the input.
 
 <p align="center">
@@ -29,13 +29,13 @@ GeoPixel is a first large multimodal model explicitly designed for high-resoluti
 </p>
 
 ---
-## Highlights 🏆 
+## 🏆 Highlights  
 - We present GeoPixel, a pixel grounding Large Multimodal Model optimized for high-resolution remote sensing image comprehension. It features adaptive image partitioning into local and global regions, enabling efficient processing of resolutions up to 4K in any aspect ratio.
 - A rich annotated dataset GeoPixelD, is created that supports Remote Sensing Grounded Conversation Generation RS-GCG. This dataset combines scene-level context and object-level details through a scalable annotation pipeline that uses advanced visual prompting designed for RS imagery.
 - A detailed evaluation benchmark is provided, containing 5,427 validated referring expression-mask pairs and 61,384 annotated objects. The dataset, with detailed descriptions averaging 647 characters, establishes a standard for testing the fine-grained understanding and generation capabilities of remote sensing models.
 
 ---
-## Requirements
+## ⚙️ Requirements
 
 - python 3.10 and above
 - pytorch >= 2.3.1, torchvision >= 0.18.1 are recommended
@@ -45,7 +45,7 @@ GeoPixel is a first large multimodal model explicitly designed for high-resoluti
   
 ---
 <!-- Architecture -->
-## Architecture
+## 🛠️ Architecture
 
 <p align="center">
   <img src="assets/architecture.png" alt="GeoPixel Architecture">
@@ -54,7 +54,7 @@ GeoPixel is a first large multimodal model explicitly designed for high-resoluti
 GeoPixel is fundamentally composed of five key blocks: (1) Adaptive Image Divider (2) Vision Encoder (3) Large Language Model (4) Grounding Vision Encoder (5) Pixel Decoder. These modules are seamlessly integrated to facilitate high-resolution visual perception, fine-grained semantic interpretation, and precise pixel-level grounding of Remote Sensing (RS) imagery.
 
 ---
-## Annotation Pipeline
+## 🏷️ Annotation Pipeline
 
 <p align="center">
   <img src="assets/annotation_pipeline.png" alt="Annotation Pipeline">
@@ -63,7 +63,7 @@ GeoPixel is fundamentally composed of five key blocks: (1) Adaptive Image Divide
 We propose a semi-automatic annotation pipeline for creating a remote sensing grounded conversation generation (RS-GCG) dataset. It employs a multi-level hierarchical strategy that includes holistic scene descriptions, individual instance annotations, and group-level semantic representations, enabling a comprehensive understanding of spatial relationships and object-level details. Advanced techniques, such as Set-of-Mark (SOM) prompting combined with spatial and categorical priors, are utilized to enhance the accuracy and granularity of object-specific annotations. 
 
 ---
-## Remote Sensing Grounded Conversation Generation (RS-GCG) 🔍
+## 🔍 Remote Sensing Grounded Conversation Generation (RS-GCG)
 
 <p align="center">
   <img src="assets/rsgcg_qualitative.png" alt="rsgcg qualitative">
@@ -79,7 +79,7 @@ Performance Comparison of various models on the Remote Sensing Grounded Conversa
 
 ---
 
-## Referring Remote Sensing Image Segmentation (RRSIS) 🔍
+## 🔍 Referring Remote Sensing Image Segmentation (RRSIS)
 
 <p align="center">
   <img src="assets/rrsis_qualitative.png" alt="rrsis qualitative">
@@ -94,7 +94,7 @@ Performance Comparison of GeoPixel in Referring Expression Segmentation on RRSIS
 
 ---
 
-## Citation 📜
+## 📜 Citation 
 
 ```bibtex
 @article{shabbir2025geopixel,
@@ -107,7 +107,7 @@ Performance Comparison of GeoPixel in Referring Expression Segmentation on RRSIS
 ```
 
 ---
-## Acknowledgement 🙏
+## 🙏 Acknowledgement 
 We appreciate InternLM-XComposer (IXC), GlaMM, and LISA for making their models and code available as open-source contributions.
 
 ---
