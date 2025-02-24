@@ -20,7 +20,7 @@
 - **Feb-20-2025**: 🔥 Our model checkpoints are released on **_HuggingFace_** [link](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043). 
 - **Jan-24-2025**: 📜 Technical Report of GeoPixel paper is released [arxiv link](https://arxiv.org/abs/2501.13925).
 
-- 👉 **[Get Started with GeoPixel](-🛠️ Usage)**
+- 👉 **[Get Started with GeoPixel](#🛠️ Usage)**
   
 ---
 
