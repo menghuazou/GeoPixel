@@ -54,7 +54,7 @@ Follow the guidelines below to set up and use GeoPixel efficiently:
 - [GeoPixelD data](./docs/dataset.md):📌 This section provides instructions on how to access and prepare the GeoPixelD dataset
 - Installation Guidelines (coming soon) :⚙️ This will include step-by-step instructions on setting up the necessary dependencies, installing required libraries, and configuring your environment for running GeoPixel.
 - [Training and Finetuning](./docs/finetune.md) :🚀 This guide explains how to train the GeoPixel model from scratch or fine-tune a pre-trained version for downstream remote sensing tasks.
-- Inference (coming soon): 🔍 This section will describe how to use a trained GeoPixel model for making predictions, running inference on images and generating segmentation masks.
+- [Inference Guide](./docs/inference.md): 🔍 This section describes how to use a trained GeoPixel model for making predictions, running inference on images and generating segmentation masks.
 
 ---
 
