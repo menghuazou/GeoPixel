@@ -90,24 +90,25 @@ def main(args):
                 mask = pred_masks[i]
                 
                 color = [random.randint(0, 255) for _ in range(3)]
-                phrases[i] = rgb_color_text(phrases[i], color[0], color[1], color[2])
-
+                if matched_text:
+                    phrases[i] = rgb_color_text(phrases[i], color[0], color[1], color[2])
                 mask_rgb = np.stack([mask, mask, mask], axis=-1) 
                 color_mask = np.array(color, dtype=np.uint8) * mask_rgb
 
                 save_img = np.where(mask_rgb, 
                         (save_img * 0.5 + color_mask * 0.5).astype(np.uint8), 
                         save_img)
-                
-            split_desc = response.split('[SEG]')
-            cleaned_segments = [re.sub(r'<p>(.*?)</p>', '', part).strip() for part in split_desc]
-            reconstructed_desc = ""
-            for i, part in enumerate(cleaned_segments):
-                reconstructed_desc += part + ' '
-                if i < len(phrases):
-                    reconstructed_desc += phrases[i] + ' '    
-            print(reconstructed_desc)
-
+            if matched_text:    
+                split_desc = response.split('[SEG]')
+                cleaned_segments = [re.sub(r'<p>(.*?)</p>', '', part).strip() for part in split_desc]
+                reconstructed_desc = ""
+                for i, part in enumerate(cleaned_segments):
+                    reconstructed_desc += part + ' '
+                    if i < len(phrases):
+                        reconstructed_desc += phrases[i] + ' '    
+                print(reconstructed_desc)
+            else:
+                print(response.replace("\n", "").replace("  ", " "))
             save_img = cv2.cvtColor(save_img, cv2.COLOR_RGB2BGR)
             save_path = "{}/{}_masked.jpg".format(
                 args.vis_save_path, image_path.split("/")[-1].split(".")[0]
