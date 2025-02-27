@@ -12,7 +12,7 @@ Input the text prompt and then the image path. For example，
 ### Example Usage
 ```
 - Please input your prompt: Can you provide a thorough description of this image? Please output with interleaved segmentation masks for the corresponding phrases.
-- Please input the image path: images/example1.jpg
+- Please input the image path: images/example1.png
 ```
 ## Referring Remote Sensing Image Segmentation (RRSIS)
 To obtain grounded segmentation masks for specific referring phrases in remote sensing images, use GeoPixel-7B-RES:
