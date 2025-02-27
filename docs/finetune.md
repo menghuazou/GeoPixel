@@ -70,7 +70,9 @@ After data preparation, you can use the provided bash scripts (`train.sh`) to tr
 When training is finished, to get the full model weight:
 
 ```
-cd ./output/checkpoint-last && python zero_to_fp32.py . ../pytorch_model.bin
+cd ./output/checkpoint-last
+python zero_to_fp32.py . ../pytorch_model.bin
+cd ../..
 ```
 
 ### 🔄 Merging LoRA Weights
@@ -80,4 +82,11 @@ CUDA_VISIBLE_DEVICES="" python merge_lora_weights_and_save_hf_model.py \
   --version="PATH_TO_BASE_MODEL" \
   --weight="PATH_TO_pytorch_model.bin" \
   --save_path="PATH_TO_SAVE_MODEL_IN_HF_FORMAT"
+```
+for example:
+```
+CUDA_VISIBLE_DEVICES=0 python merge_lora_weights_and_save_hf_model.py \
+  --version="MBZUAI/GeoPixel-7B"" \
+  --weight="output/pytorch_model.bin" \
+  --save_path="GeoPixel-7B-finetuned"
 ```
