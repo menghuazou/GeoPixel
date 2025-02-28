@@ -72,7 +72,7 @@ def main(args):
         image = [image_path]
 
         with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-            response, pred_masks = model.evaluate(tokenizer, query, images = image, max_new_tokens = 150)
+            response, pred_masks = model.evaluate(tokenizer, query, images = image, max_new_tokens = 300)
         
         if pred_masks and '[SEG]' in response:
             pred_masks = pred_masks[0]
