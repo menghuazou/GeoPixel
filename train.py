@@ -268,17 +268,6 @@ def train():
         rank0_print(f'Initializing Vision Modules: {model_args.vision_pretrained}')
         model.model.initialize_geopixel_modules(model.config)
     
-    if training_args.fix_vit:
-        model.vit.requires_grad_(False)
-    else:
-        model.vit.requires_grad_(True)
-        model.vit.vision_tower.vision_model.post_layernorm = torch.nn.Identity()
-
-    if training_args.fix_sampler:
-        model.vision_proj.requires_grad_(False)
-    else:
-        model.vision_proj.requires_grad_(True)
-    
     if training_args.use_lora:
 
         for name, param in model.model.named_parameters():
@@ -296,7 +285,18 @@ def train():
         model = get_peft_model(model, lora_config)
         if training_args.gradient_checkpointing:
             model.enable_input_require_grads()
-        
+    
+    if training_args.fix_vit:
+        model.vit.requires_grad_(False)
+    else:
+        model.vit.requires_grad_(True)
+        model.vit.vision_tower.vision_model.post_layernorm = torch.nn.Identity()
+
+    if training_args.fix_sampler:
+        model.vision_proj.requires_grad_(False)
+    else:
+        model.vision_proj.requires_grad_(True)    
+    
     # make some modules trainable
     trainable_modules = ["output", "tok_embeddings", "sam_mask_decoder", "text_hidden_fcs"]
     for name, param in model.named_parameters():
