@@ -86,7 +86,7 @@ CUDA_VISIBLE_DEVICES="" python merge_lora_weights_and_save_hf_model.py \
 for example:
 ```
 CUDA_VISIBLE_DEVICES=0 python merge_lora_weights_and_save_hf_model.py \
-  --version="MBZUAI/GeoPixel-7B"" \
+  --version="MBZUAI/GeoPixel-7B" \
   --weight="output/pytorch_model.bin" \
   --save_path="GeoPixel-7B-finetuned"
 ```
