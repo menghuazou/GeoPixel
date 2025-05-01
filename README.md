@@ -1,4 +1,4 @@
-# GeoPixel <img src="assets/logo.png" height="50">: Pixel Grounding Large Multimodal Model in Remote Sensing
+# GeoPixel <img src="assets/logo.png" height="50">: Pixel Grounding Large Multimodal Model in Remote Sensing [ICML 2025 🔥]
 
 ![](https://i.imgur.com/waxVImv.png)
 
@@ -14,7 +14,8 @@
   
 ---
 
-## 📢  Latest Updates 
+## 📢  Latest Updates
+- **May-01-2025**: 🔥 GeoPixel is accepted in ICML 2025 (at Vancouver, Canada)
 - **Feb-26-2025**: 📂 GeoPixelD dataset is released on **_HuggingFace_** [MBZUAI/GeoPixelD](https://huggingface.co/datasets/MBZUAI/GeoPixelD)
 - **Feb-20-2025**: 🚀 GeoPixel training and finetuning code is released. 
 - **Feb-20-2025**: 🔥 Our model checkpoints are released on **_HuggingFace_** [link](https://huggingface.co/collections/MBZUAI/geopixel-67b6e1e441250814d06f2043). 
