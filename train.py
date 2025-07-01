@@ -26,7 +26,8 @@ IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 class ModelArguments:
     model_name_or_path: Optional[str] = field(default='')
     # GeoPixelModel arguments
-    vision_pretrained: Optional[str] = field(default='facebook/sam2-hiera-large')
+    # vision_pretrained: Optional[str] = field(default='facebook/sam2-hiera-large')
+    vision_pretrained: Optional[str] = field(default=r"D:\LLM\models\ixc-clip")
     train_mask_decoder: bool = True
     out_dim : int = 256
     ce_loss_weight : float = 1.0

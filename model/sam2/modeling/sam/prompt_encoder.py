@@ -41,12 +41,12 @@ class PromptEncoder(nn.Module):
         self.embed_dim = embed_dim
         self.input_image_size = input_image_size
         self.image_embedding_size = image_embedding_size
-        self.pe_layer = PositionEmbeddingRandom(embed_dim // 2)
+        self.pe_layer = PositionEmbeddingRandom(embed_dim // 2) # 位置编码
 
         self.num_point_embeddings: int = 4  # pos/neg point + 2 box corners
         point_embeddings = [
             nn.Embedding(1, embed_dim) for i in range(self.num_point_embeddings)
-        ]
+        ] # 点提示嵌入，正点、负点、框左上角点、框右下角点
         self.point_embeddings = nn.ModuleList(point_embeddings)
         self.not_a_point_embed = nn.Embedding(1, embed_dim)
 
@@ -62,7 +62,7 @@ class PromptEncoder(nn.Module):
             LayerNorm2d(mask_in_chans),
             activation(),
             nn.Conv2d(mask_in_chans, embed_dim, kernel_size=1),
-        )
+        ) # 掩模输入大小
         self.no_mask_embed = nn.Embedding(1, embed_dim)
 
     def get_dense_pe(self) -> torch.Tensor:
@@ -168,6 +168,7 @@ class PromptEncoder(nn.Module):
         sparse_embeddings = torch.empty(
             (bs, 0, self.embed_dim), device=self._get_device()
         )
+        # 按顺序编码提示
         if points is not None:
             coords, labels = points
             point_embeddings = self._embed_points(coords, labels, pad=(boxes is None))

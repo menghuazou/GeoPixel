@@ -136,9 +136,6 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
                                  (0.26862954, 0.26130258, 0.27577711)),
         ])
 
-
-    
-
     def _set_gradient_checkpointing(self, module, value=False):
         if isinstance(module, InternLM2Model):
             module.gradient_checkpointing = value
@@ -171,6 +168,9 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         return embs
 
     def encode_img(self, image, hd_num=25):
+        """
+        将图片或视频转换为模型能理解的嵌入向量
+        """
         if image is None:
             return None
         if isinstance(image, str):
@@ -243,63 +243,196 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         targets = targets.to(self.device)
         return to_regress_tokens, targets
 
-    def interleav_wrap_chat(self, query, image, history = [], meta_instruction='', max_length=16384, hd_num=24):
+    # def interleav_wrap_chat(self, query, image, history = [], meta_instruction='', max_length=16384, hd_num=24):
+    #     """
+    #     交错排列文本对话、图片，并返回输入和掩码，通过掩码能区分图片和文本的位置
+    #     """
+    #     self.max_length = max_length
+    #     prompt = ''
+    #     if meta_instruction:
+    #         prompt += f"""[UNUSED_TOKEN_146]system\n{meta_instruction}[UNUSED_TOKEN_145]\n""" # system 指令
+    #     for record in history:
+    #         prompt += f"""[UNUSED_TOKEN_146]user\n{record[0]}[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n{record[1]}[UNUSED_TOKEN_145]\n""" # 历史对话
+    #     prompt += f"""[UNUSED_TOKEN_146]user\n{query}[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n""" # 当前对话
+    #
+    #     image_nums = len(image)
+    #     if image_nums == 1 and prompt.find('<ImageHere>') == -1:
+    #         #print ('auto append image at the begining')
+    #         prompt = '<ImageHere>' + prompt # 插入图片位置标记
+    #
+    #     parts = prompt.split('<ImageHere>')
+    #     wrap_embeds, wrap_im_mask = [], []
+    #     temp_len = 0
+    #     need_bos = True
+    #
+    #     if len(parts) != image_nums + 1:
+    #         #raise ValueError('Invalid <ImageHere> prompt format.')
+    #         print ('Waring! The image number != given position!')
+    #     if image_nums > 1:
+    #         hd_num = 6
+    #     else:
+    #         hu_num = hd_num
+    #     for idx, part in enumerate(parts):
+    #         if need_bos or len(part) > 0:
+    #             part_tokens = self.tokenizer(
+    #                 part,
+    #                 return_tensors='pt',
+    #                 padding='longest',
+    #                 add_special_tokens=need_bos).to(self.device)
+    #             if need_bos:
+    #                 need_bos = False
+    #
+    #             part_embeds = self.model.tok_embeddings(
+    #                 part_tokens.input_ids)
+    #             wrap_embeds.append(part_embeds)
+    #             wrap_im_mask.append(torch.zeros(part_embeds.shape[:2]))
+    #             temp_len += part_embeds.shape[1]
+    #         if idx < image_nums:
+    #             img = self.encode_img(image[idx], hd_num)
+    #             wrap_embeds.append(img)
+    #             wrap_im_mask.append(torch.ones(img.shape[:2]))
+    #             temp_len += img.shape[1]
+    #
+    #         if temp_len > self.max_length:
+    #             break
+    #
+    #     wrap_embeds = torch.cat(wrap_embeds, dim=1)
+    #     wrap_im_mask = torch.cat(wrap_im_mask, dim=1)
+    #     wrap_embeds = wrap_embeds[:, :self.max_length].to(self.device)
+    #     wrap_im_mask = wrap_im_mask[:, :self.max_length].to(self.device).bool()
+    #     inputs = {
+    #         'inputs_embeds': wrap_embeds
+    #     }
+    #     return inputs, wrap_im_mask, temp_len
+    def interleav_wrap_chat(self, query, images, history=[], meta_instruction='',
+                            max_length=16384, hd_num=24, change_detection=False):
         self.max_length = max_length
         prompt = ''
+
+        # 添加系统指令
         if meta_instruction:
             prompt += f"""[UNUSED_TOKEN_146]system\n{meta_instruction}[UNUSED_TOKEN_145]\n"""
+
+        # 添加历史对话
         for record in history:
             prompt += f"""[UNUSED_TOKEN_146]user\n{record[0]}[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n{record[1]}[UNUSED_TOKEN_145]\n"""
+
+        # 添加当前查询
         prompt += f"""[UNUSED_TOKEN_146]user\n{query}[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n"""
 
-        image_nums = len(image)
-        if image_nums == 1 and prompt.find('<ImageHere>') == -1:
-            #print ('auto append image at the begining')
-            prompt = '<ImageHere>' + prompt
+        # ===== 核心修改：支持双图像变化检测 =====
+        if change_detection:
+            # 确保有两个图像输入
+            if len(images) != 2:
+                raise ValueError("变化检测需要两个图像输入: [历史图像, 当前图像]")
 
-        parts = prompt.split('<ImageHere>')
+            # 自动添加双图像占位符
+            if prompt.find('<ImageAHere>') == -1 and prompt.find('<ImageBHere>') == -1:
+                prompt = '<ImageAHere>历史图像<ImageBHere>当前图像\n' + prompt # todo: 这里要重新设计一下吧
+        else:
+            # 单图像自动添加占位符
+            image_nums = len(images)
+            if image_nums == 1 and prompt.find('<ImageHere>') == -1:
+                prompt = '<ImageHere>' + prompt
+
+        # ===== 多图像占位符处理 =====
+        if change_detection:
+            # 双图像特殊占位符处理
+            parts = []
+            temp_parts = prompt.split('<ImageAHere>')
+            for part in temp_parts:
+                sub_parts = part.split('<ImageBHere>')
+                parts.extend(sub_parts)
+                # 在A和B之间添加分隔标记
+                if len(sub_parts) > 1:
+                    parts.insert(-1, "[CHANGE_DETECT]")
+        else:
+            # 原始单图像处理
+            parts = prompt.split('<ImageHere>')
+
         wrap_embeds, wrap_im_mask = [], []
         temp_len = 0
         need_bos = True
 
-        if len(parts) != image_nums + 1:
-            #raise ValueError('Invalid <ImageHere> prompt format.')
-            print ('Waring! The image number != given position!')
+        # 调整图像数量检测
+        image_nums = 2 if change_detection else len(images)
+
         if image_nums > 1:
-            hd_num = 6
-        else:
-            hu_num = hd_num
+            hd_num = max(6, hd_num)  # 确保足够的特征数量
+
+        # ===== 嵌入处理循环 =====
+        image_index = 0
         for idx, part in enumerate(parts):
+            if part == "[CHANGE_DETECT]":
+                # 添加变化检测特殊标记
+                change_token = self.tokenizer(
+                    "[CHANGE]",
+                    return_tensors='pt',
+                    add_special_tokens=False
+                ).to(self.device)
+                change_embed = self.model.tok_embeddings(change_token.input_ids)
+                wrap_embeds.append(change_embed)
+                wrap_im_mask.append(torch.zeros(change_embed.shape[:2]))
+                temp_len += change_embed.shape[1]
+                continue
+
             if need_bos or len(part) > 0:
                 part_tokens = self.tokenizer(
                     part,
                     return_tensors='pt',
                     padding='longest',
-                    add_special_tokens=need_bos).to(self.device)
+                    add_special_tokens=need_bos
+                ).to(self.device)
+
                 if need_bos:
                     need_bos = False
 
-                part_embeds = self.model.tok_embeddings(
-                    part_tokens.input_ids)
+                part_embeds = self.model.tok_embeddings(part_tokens.input_ids)
                 wrap_embeds.append(part_embeds)
                 wrap_im_mask.append(torch.zeros(part_embeds.shape[:2]))
                 temp_len += part_embeds.shape[1]
-            if idx < image_nums:
-                img = self.encode_img(image[idx], hd_num)
+
+            # 图像嵌入处理
+            if image_index < image_nums:
+                # 处理元组输入 (路径, ID)
+                img_source = images[image_index]
+                img_path = img_source[0] if isinstance(img_source, tuple) else img_source # 处理元组的情况
+
+                # 变化检测图像特殊处理
+                if change_detection:
+                    # 历史图像使用低分辨率特征
+                    if image_index == 0:
+                        img = self.encode_img(img_path, hd_num=6) # 针对单张图像进行编码
+                    # 当前图像使用高分辨率特征
+                    else:
+                        img = self.encode_img(img_path, hd_num=12)
+                else:
+                    img = self.encode_img(img_path, hd_num)
+
                 wrap_embeds.append(img)
                 wrap_im_mask.append(torch.ones(img.shape[:2]))
                 temp_len += img.shape[1]
-    
+                image_index += 1
+
             if temp_len > self.max_length:
                 break
-    
+
+        # ===== 特征拼接 =====
         wrap_embeds = torch.cat(wrap_embeds, dim=1)
         wrap_im_mask = torch.cat(wrap_im_mask, dim=1)
+
+        # 裁剪到最大长度
         wrap_embeds = wrap_embeds[:, :self.max_length].to(self.device)
         wrap_im_mask = wrap_im_mask[:, :self.max_length].to(self.device).bool()
+
         inputs = {
             'inputs_embeds': wrap_embeds
         }
+
+        # 变化检测添加额外标记
+        if change_detection:
+            inputs['change_detection'] = True
+
         return inputs, wrap_im_mask, temp_len
 
     def interleav_wrap(self, img_list, text_list, image_nums):
@@ -421,12 +554,12 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
     @replace_return_docstrings(
         output_type=CustomCausalLMOutputWithPast, config_class=_CONFIG_FOR_DOC)
     def forward(self,
-                input_ids: torch.LongTensor = None,
+                input_ids: torch.LongTensor = None, # 数字编码
                 attention_mask: Optional[torch.Tensor] = None,
                 position_ids: Optional[torch.LongTensor] = None,
                 past_key_values: Optional[List[torch.FloatTensor]] = None,
-                inputs_embeds: Optional[torch.FloatTensor] = None,
-                labels: Optional[torch.LongTensor] = None,
+                inputs_embeds: Optional[torch.FloatTensor] = None, # 图像与文字的组合表示
+                labels: Optional[torch.LongTensor] = None, # 标签，用于训练
                 use_cache: Optional[bool] = None,
                 output_attentions: Optional[bool] = None,
                 output_hidden_states: Optional[bool] = None,
@@ -444,6 +577,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         samples = kwargs.get('samples', None)
         seg_token_mask = []
         if samples:
+            # 识别输入类型
             infer_mode = samples.get('infer_mode', 'base')
             if samples['data_type'][0] == 'text':
                 has_img = False
@@ -501,6 +635,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
+        # 核心计算
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -511,7 +646,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
-            im_mask=im_mask,
+            im_mask=im_mask, # 标记哪些位置是图像
             infer_mode=infer_mode,
         )
 

@@ -655,7 +655,7 @@ class InternLM2DecoderLayer(nn.Module):
                 "Please make sure use `attention_mask` instead.`"
             )
 
-        residual = hidden_states
+        residual = hidden_states # 残差连接
 
         hidden_states = self.attention_norm(hidden_states)
 
@@ -671,7 +671,7 @@ class InternLM2DecoderLayer(nn.Module):
             infer_mode=infer_mode,
             **kwargs,
         )
-        hidden_states = residual + hidden_states
+        hidden_states = residual + hidden_states # 将注意力层的输出与残差相加
 
         # Fully Connected
         residual = hidden_states
@@ -817,7 +817,7 @@ class InternLM2Model(InternLM2PreTrainedModel):
         self.vocab_size = config.vocab_size
         self.config = config
 
-        self.tok_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
+        self.tok_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx) #嵌入层
 
         self.layers = nn.ModuleList([InternLM2DecoderLayer(config) for _ in range(config.num_hidden_layers)])
         self.norm = InternLM2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)

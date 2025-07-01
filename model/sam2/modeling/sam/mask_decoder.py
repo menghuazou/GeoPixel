@@ -32,6 +32,7 @@ class MaskDecoder(nn.Module):
         use_multimask_token_for_obj_ptr: bool = False,
     ) -> None:
         """
+        负责根据图像嵌入和提示嵌入来预测掩码，同时预测掩码质量分数（IoU）和对象存在分数。
         Predicts masks given an image and prompt embeddings, using a
         transformer architecture.
 
@@ -55,7 +56,7 @@ class MaskDecoder(nn.Module):
 
         self.iou_token = nn.Embedding(1, transformer_dim)
         self.num_mask_tokens = num_multimask_outputs + 1
-        self.mask_tokens = nn.Embedding(self.num_mask_tokens, transformer_dim)
+        self.mask_tokens = nn.Embedding(self.num_mask_tokens, transformer_dim) # 掩码预测token
 
         self.pred_obj_scores = pred_obj_scores
         if self.pred_obj_scores:
@@ -95,7 +96,7 @@ class MaskDecoder(nn.Module):
             self.num_mask_tokens,
             iou_head_depth,
             sigmoid_output=iou_prediction_use_sigmoid,
-        )
+        ) #预测头
         if self.pred_obj_scores:
             self.pred_obj_score_head = nn.Linear(transformer_dim, 1)
             if pred_obj_scores_mlp:
@@ -152,6 +153,7 @@ class MaskDecoder(nn.Module):
             masks = masks[:, 0:1, :, :]
             iou_pred = iou_pred[:, 0:1]
 
+        # 令牌选择
         if multimask_output and self.use_multimask_token_for_obj_ptr:
             sam_tokens_out = mask_tokens_out[:, 1:]  # [b, 3, c] shape
         else:
@@ -194,7 +196,7 @@ class MaskDecoder(nn.Module):
         output_tokens = output_tokens.unsqueeze(0).expand(
             sparse_prompt_embeddings.size(0), -1, -1
         )
-        tokens = torch.cat((output_tokens, sparse_prompt_embeddings), dim=1)
+        tokens = torch.cat((output_tokens, sparse_prompt_embeddings), dim=1)  # 拼接提示嵌入
 
         # Expand per-image data in batch direction to be per-mask
         if repeat_image:
@@ -202,7 +204,7 @@ class MaskDecoder(nn.Module):
         else:
             assert image_embeddings.shape[0] == tokens.shape[0]
             src = image_embeddings
-        src = src + dense_prompt_embeddings
+        src = src + dense_prompt_embeddings # 图像+密集提示
         assert (
             image_pe.size(0) == 1
         ), "image_pe should have size 1 in batch dim (from `get_dense_pe()`)"
@@ -211,8 +213,8 @@ class MaskDecoder(nn.Module):
 
         # Run the transformer
         hs, src = self.transformer(src, pos_src, tokens)
-        iou_token_out = hs[:, s, :]
-        mask_tokens_out = hs[:, s + 1 : (s + 1 + self.num_mask_tokens), :]
+        iou_token_out = hs[:, s, :] # iou特征
+        mask_tokens_out = hs[:, s + 1 : (s + 1 + self.num_mask_tokens), :] # 掩码特征
 
         # Upscale mask embeddings and predict masks using the mask tokens
         src = src.transpose(1, 2).view(b, c, h, w)

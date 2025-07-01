@@ -14,7 +14,8 @@ def rgb_color_text(text, r, g, b):
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description="Chat with GeoPixel")
-    parser.add_argument("--version", default="MBZUAI/GeoPixel-7B")
+    # parser.add_argument("--version", default="MBZUAI/GeoPixel-7B")
+    parser.add_argument("--version", default=r"D:\LLM\models\geopixel")
     parser.add_argument("--vis_save_path", default="./vis_output", type=str)
     return parser.parse_args(args)
 
@@ -34,7 +35,7 @@ def main(args):
     tokenizer.pad_token = tokenizer.unk_token
     seg_token_idx, bop_token_idx, eop_token_idx = [
         tokenizer(token, add_special_tokens=False).input_ids[0] for token in ['[SEG]','<p>', '</p>']
-    ]
+    ] # tokenizer将三个特定标记转换为它们对应的索引
    
     kwargs = {"torch_dtype": torch.bfloat16}    
     geo_model_args = {
@@ -70,9 +71,13 @@ def main(args):
             continue
 
         image = [image_path]
+        # image=[
+        #     (r"D:\AAALook This\Work\luxitech\Dataset\unet_dafei\dataset_voc\JPEGImages\P0224_0_800_600_1400.jpg", "历史图像"),
+        #     ("/data/current.png", "当前图像")
+        # ]
 
         with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-            response, pred_masks = model.evaluate(tokenizer, query, images = image, max_new_tokens = 300)
+            response, pred_masks = model.evaluate(tokenizer, query, images = image, change_detection= False, max_new_tokens = 300) # todo: 变化检测的返回处理
         
         if pred_masks and '[SEG]' in response:
             pred_masks = pred_masks[0]

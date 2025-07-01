@@ -9,10 +9,28 @@ import torchvision.transforms as transforms
 from decord import VideoReader
 
 def get_font():
+    import socket
+    from urllib.error import URLError
     truetype_url = 'https://huggingface.co/internlm/internlm-xcomposer2d5-7b/resolve/main/SimHei.ttf?download=true'
-    ff = urlopen(truetype_url)
-    font = ImageFont.truetype(ff, size=40)
-    return font
+
+    # ff = urlopen(truetype_url)
+    # font = ImageFont.truetype(ff, size=40)
+    # return font
+
+    # 设置超时时间为30秒
+    socket.setdefaulttimeout(30)
+
+    # 尝试最多3次
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            ff = urlopen(truetype_url)
+            font = ImageFont.truetype(ff, size=40)
+            return font
+        except (URLError, socket.timeout) as e:
+            if attempt == max_retries - 1:
+                raise
+            print(f"Download attempt {attempt + 1} failed, retrying... Error: {str(e)}")
 
 def padding_336(b, pad=336):
     width, height = b.size

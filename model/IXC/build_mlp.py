@@ -6,7 +6,8 @@ from transformers import CLIPVisionModel, CLIPImageProcessor, CLIPVisionConfig
 
 
 def build_vision_tower():
-    vision_tower = 'internlm/internlm-xcomposer2d5-clip'
+    # vision_tower = 'internlm/internlm-xcomposer2d5-clip'
+    vision_tower = r"D:\LLM\models\ixc-clip"
     return CLIPVisionTower(vision_tower)
 
 

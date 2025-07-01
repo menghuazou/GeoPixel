@@ -39,6 +39,7 @@ class SAM2Transforms(nn.Module):
         return self.transforms(x)
 
     def forward_batch(self, img_list):
+        # 将一个图像列表转换为一个可以用于深度学习模型训练的张量批次
         img_batch = [self.transforms(self.to_tensor(img)) for img in img_list]
         img_batch = torch.stack(img_batch, dim=0)
         return img_batch
@@ -47,44 +48,51 @@ class SAM2Transforms(nn.Module):
         self, coords: torch.Tensor, normalize=False, orig_hw=None
     ) -> torch.Tensor:
         """
+        将输入的坐标转换为SAM2模型所需的格式
         Expects a torch tensor with length 2 in the last dimension. The coordinates can be in absolute image or normalized coordinates,
         If the coords are in absolute image coordinates, normalize should be set to True and original image size is required.
 
         Returns
             Un-normalized coordinates in the range of [0, 1] which is expected by the SAM2 model.
         """
-        if normalize:
+        if normalize: #归一化
             assert orig_hw is not None
             h, w = orig_hw
             coords = coords.clone()
             coords[..., 0] = coords[..., 0] / w
             coords[..., 1] = coords[..., 1] / h
 
-        coords = coords * self.resolution  # unnormalize coords
-        return coords
+        coords = coords * self.resolution  # unnormalize coords；“反归一化”或调整分辨率
+        return coords #tensor
 
     def transform_boxes(
         self, boxes: torch.Tensor, normalize=False, orig_hw=None
     ) -> torch.Tensor:
         """
+        对输入的边界框进行变换。
+        boxes: torch.Tensor: 输入参数，一个形状为 Bx4 的张量，其中 B 是批量大小（batch size），4 表示每个边界框的四个坐标（通常是 xmin, ymin, xmax, ymax）
         Expects a tensor of shape Bx4. The coordinates can be in absolute image or normalized coordinates,
         if the coords are in absolute image coordinates, normalize should be set to True and original image size is required.
         """
+
+        # boxes.reshape(-1, 2, 2): 将输入张量 boxes 从形状 Bx4 重塑为 Bx2x2
         boxes = self.transform_coords(boxes.reshape(-1, 2, 2), normalize, orig_hw)
         return boxes
 
     def postprocess_masks(self, masks: torch.Tensor, orig_hw) -> torch.Tensor:
         """
+        masks: 输入的掩码张量，形状通常为 (batch_size, num_masks, height, width)
         Perform PostProcessing on output masks.
         """
         from model.sam2.utils.misc import get_connected_components
 
         masks = masks.float()
         input_masks = masks
-        mask_flat = masks.flatten(0, 1).unsqueeze(1)  # flatten as 1-channel image
+        mask_flat = masks.flatten(0, 1).unsqueeze(1)  # flatten as 1-channel image, 转为单通道图像
         try:
             if self.max_hole_area > 0:
-                # Holes are those connected components in background with area <= self.fill_hole_area
+                # 处理空洞
+                # Holes are those connected components in background with area <= self.fill_hole_area，孔洞是指那些面积小于等于self.max_hole_area的连通组件。
                 # (background regions are those with mask scores <= self.mask_threshold)
                 labels, areas = get_connected_components(
                     mask_flat <= self.mask_threshold
@@ -95,6 +103,7 @@ class SAM2Transforms(nn.Module):
                 masks = torch.where(is_hole, self.mask_threshold + 10.0, masks)
 
             if self.max_sprinkle_area > 0:
+                # 杂点清除
                 labels, areas = get_connected_components(
                     mask_flat > self.mask_threshold
                 )

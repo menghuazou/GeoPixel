@@ -52,7 +52,7 @@ After preparing the JSON files, you are required to define all the JSON file pat
 For example:
 
 ```
-data/GeoPixelD.json 0.02
+data/G eoPixelD.json 0.02
 ```
 
 This means the model will sample 20 samples from `data/GeoPixel.json`

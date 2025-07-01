@@ -76,17 +76,17 @@ class InternLMXcomposer2Config(PretrainedConfig):
 
     def __init__(  # pylint: disable=W0102
         self,
-        vocab_size=103168,
-        hidden_size=4096,
-        intermediate_size=11008,
-        num_hidden_layers=32,
-        num_attention_heads=32,
+        vocab_size=103168, #词汇表
+        hidden_size=4096, #隐藏层大小，神经元数量
+        intermediate_size=11008, # 中间层大小，前馈网络
+        num_hidden_layers=32, # 隐藏层的数量，即Transformer模型中堆叠的编码器或解码器层的数量。
+        num_attention_heads=32, # 多头注意力
         num_key_value_heads=None,
-        hidden_act="silu",
+        hidden_act="silu", # 激活函数
         max_position_embeddings=2048,
         initializer_range=0.02,
         rms_norm_eps=1e-6,
-        use_cache=False,
+        use_cache=False, #缓存推理加速
         pad_token_id=0,
         bos_token_id=1,
         eos_token_id=2,
@@ -94,7 +94,7 @@ class InternLMXcomposer2Config(PretrainedConfig):
         bias=True,
         rope_theta=10000,
         rope_scaling=None,
-        attn_implementation="flash_attention_2",
+        attn_implementation="flash_attention_2", # 注意力实现方式
         **kwargs,
     ):
         self.vocab_size = vocab_size
@@ -130,7 +130,10 @@ class InternLMXcomposer2Config(PretrainedConfig):
 
     def _rope_scaling_validation(self):
         """
+        验证 rope_scaling 配置是否正确
+        rope_scaling：扩展大模型上下文窗口的技术
         Validate the `rope_scaling` configuration.
+        下划线 _ 通常表示这是一个“受保护的”或“内部的”方法，意味着它不应该被类的外部直接调用
         """
         if self.rope_scaling is None:
             return

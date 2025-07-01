@@ -21,7 +21,7 @@ def build_sam2(
     apply_postprocessing=True,
     **kwargs,
 ):
-
+    # 根据传入的配置文件路径和额外的Hydra覆盖参数构建SAM2模型
     if apply_postprocessing:
         hydra_overrides_extra = hydra_overrides_extra.copy()
         hydra_overrides_extra += [
@@ -79,7 +79,7 @@ def build_sam2_video_predictor(
 
 
 def build_sam2_hf(model_id, **kwargs):
-
+    # 根据传入的模型ID从Hugging Face Hub下载SAM2模型的配置文件和检查点文件，并使用这些文件构建SAM2模型
     from huggingface_hub import hf_hub_download
 
     model_id_to_filenames = {
@@ -117,6 +117,7 @@ def build_sam2_video_predictor_hf(model_id, **kwargs):
 
 
 def _load_checkpoint(model, ckpt_path):
+    # 将一个checkpoint加载到一个PyTorch模型中，同时处理参数名称可能的不匹配问题
     if ckpt_path is not None:
         sd = torch.load(ckpt_path, map_location="cpu")["model"]
         renamed_sd = {k.replace("gamma", "weight") if "gamma" in k else k: v for k, v in sd.items()}
