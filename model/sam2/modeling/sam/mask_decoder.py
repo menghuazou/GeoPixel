@@ -111,7 +111,7 @@ class MaskDecoder(nn.Module):
     def forward(
         self,
         image_embeddings: torch.Tensor,
-        image_pe: torch.Tensor,
+        image_pe: torch.Tensor, #图像位置编码（来自PromptEncoder的get_dense_pe()）
         sparse_prompt_embeddings: torch.Tensor,
         dense_prompt_embeddings: torch.Tensor,
         multimask_output: bool,

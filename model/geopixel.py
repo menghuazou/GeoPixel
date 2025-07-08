@@ -139,6 +139,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
         self.dice_loss_weight = kwargs.pop("dice_loss_weight", None)
         self.bce_loss_weight = kwargs.pop("bce_loss_weight", None)
         self.seg_token_idx = kwargs.pop("seg_token_idx")
+        self.change_token_idx = kwargs.pop("change_token_idx", 250001)  # 默认值
 
         self.change_detector = ChangeDetectionModule(visual_dim=256)
         self.cross_modal_fusion = CrossModalFusion(visual_dim=256, text_dim=256)
@@ -226,11 +227,20 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
 
             seg_token_mask = outputs.seg_token_mask
             pred_embeddings = [states[masks] for states, masks in zip(last_hidden_state, seg_token_mask)]
+            
+           
+            change_token_mask = getattr(outputs, 'change_token_mask', None)
+            change_embeddings = []
+            if change_token_mask is not None:
+                change_embeddings = [states[masks] for states, masks in zip(last_hidden_state, change_token_mask)]
+            
             image_g_batch = torch.cat(samples['image_g'][0],dim = 0)
 
             image_g_features = self.get_visual_embs(image_g_batch)
             ori_hw = samples['ori_hw'][0]
             all_pred_masks = []
+            all_change_masks = []  
+            
             for i in range(len(pred_embeddings)): #(bs,)
                 if (pred_embeddings[i].numel()== 0):
                     pred_masks.append([])
@@ -262,6 +272,11 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                     ori_hw[i],
                 )
                 all_pred_masks.append(pred_masks[:, 0])
+
+                if change_embeddings and change_embeddings[i].numel() > 0:
+                    all_change_masks.append([])
+                else:
+                    all_change_masks.append([])
                 
 
             model_output = outputs
@@ -272,6 +287,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                 return {
                     "pred_masks": pred_masks,
                     "gt_masks": gt_masks,
+                    "change_masks": all_change_masks,  # 添加变化掩码输出
                 }
 
             ce_loss = model_output.loss
@@ -342,6 +358,13 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
         """
         增强的评估函数，支持单图像分割和双图像变化检测
         """
+        # 添加输入验证
+        if change_detection:
+            if len(images) != 2:
+                raise ValueError(f"变化检测需要2个图像输入，当前提供{len(images)}个")
+            if not isinstance(images, (list, tuple)):
+                raise ValueError("变化检测的图像输入必须是列表或元组格式")
+        
         with torch.no_grad():
             # 1. 输入预处理
             inputs, im_mask, _ = self.interleav_wrap_chat(
@@ -456,7 +479,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                             boxes=None,
                             masks=None,
                             text_embeds=pred_embeddings[i].unsqueeze(1),
-                        )
+                        ) #sam 提示编码
 
                         batch_mode = (pred_embeddings[i].shape[0] > 1)
                         high_res_features = [
@@ -474,7 +497,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                             repeat_image=batch_mode,
                             multimask_output=False,
                             high_res_features=high_res_features,
-                        )
+                        ) #掩码解码器
 
                         # 后处理分割掩码
                         seg_masks = self.model._transform.postprocess_masks(
@@ -506,10 +529,13 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                         )
 
                         # 2. 增强特征融合
-                        text_feat = torch.cat([
-                            change_features[i].unsqueeze(1),
-                            pred_embeddings[i].unsqueeze(1) if pred_embeddings[i].numel() > 0 else ...
-                        ], dim=1)
+                        if pred_embeddings[i].numel() > 0:
+                            text_feat = torch.cat([
+                                change_features[i].unsqueeze(1),
+                                pred_embeddings[i].unsqueeze(1)
+                            ], dim=1)
+                        else:
+                            text_feat = change_features[i].unsqueeze(1)
 
                         fused_prompt = self.cross_modal_fusion(diff_feature, text_feat)
 
