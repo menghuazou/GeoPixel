@@ -14,7 +14,8 @@ def rgb_color_text(text, r, g, b):
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description="Chat with GeoPixel")
-    parser.add_argument("--version", default="MBZUAI/GeoPixel-7B")
+    # parser.add_argument("--version", default="MBZUAI/GeoPixel-7B")
+    parser.add_argument("--version", default="/root/autodl-tmp/models/geopixel-7b")
     parser.add_argument("--vis_save_path", default="./vis_output", type=str)
     return parser.parse_args(args)
 
@@ -38,7 +39,8 @@ def main(args):
    
     kwargs = {"torch_dtype": torch.bfloat16}    
     geo_model_args = {
-        "vision_pretrained": 'facebook/sam2-hiera-large',
+        # "vision_pretrained": 'facebook/sam2-hiera-large',
+        "vision_pretrained": '/root/autodl-tmp/models/sam2-hiera-large',
         "seg_token_idx" : seg_token_idx, # segmentation token index
         "bop_token_idx" : bop_token_idx, # begining of phrase token index
         "eop_token_idx" : eop_token_idx  # end of phrase token index
