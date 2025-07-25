@@ -10,5 +10,5 @@ from hydra.core.global_hydra import GlobalHydra
 
 if GlobalHydra.instance().is_initialized():
     GlobalHydra.instance().clear()
-    
+
 initialize_config_module("model/sam2_configs", version_base="1.2")

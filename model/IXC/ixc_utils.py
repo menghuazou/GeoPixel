@@ -9,10 +9,23 @@ import torchvision.transforms as transforms
 from decord import VideoReader
 
 def get_font():
-    truetype_url = 'https://huggingface.co/internlm/internlm-xcomposer2d5-7b/resolve/main/SimHei.ttf?download=true'
-    ff = urlopen(truetype_url)
-    font = ImageFont.truetype(ff, size=40)
-    return font
+    # truetype_url = 'https://huggingface.co/internlm/internlm-xcomposer2d5-7b/resolve/main/SimHei.ttf?download=true'
+    truetype_url = 'model/IXC/SimHei.ttf'
+    try:
+        # 尝试从网络下载字体
+        # ff = urlopen(truetype_url)
+        ff = truetype_url
+        font = ImageFont.truetype(ff, size=40)
+        return font
+    except Exception as e:
+        print(f"Warning: Failed to download font from {truetype_url}: {str(e)}")
+        print("Using default system font as fallback")
+        try:
+            # 尝试使用系统默认字体
+            return ImageFont.load_default(size=40)
+        except:
+            # 如果默认字体也不可用，创建一个空字体
+            return ImageFont.load_default()
 
 def padding_336(b, pad=336):
     width, height = b.size

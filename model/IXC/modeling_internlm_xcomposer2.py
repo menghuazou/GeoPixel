@@ -110,7 +110,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
 
     _tied_weights_keys = ['output.weight']
 
-    def __init__(self, config):
+    def __init__(self, config): # "_name_or_path": "/root/autodl-tmp/models/geopixel-7b",
         super().__init__(config)
         self.model = InternLM2Model(config)
         self.vocab_size = config.vocab_size
@@ -118,17 +118,17 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
             config.hidden_size, config.vocab_size, bias=False)
         self.tokenizer = None
         self.hd_num = 25
-        self.font = get_font()
+        self.font = get_font() # <PIL.ImageFont.FreeTypeFont object at 0x7fb2e179af20>
 
-        self.max_length = config.max_length
+        self.max_length = config.max_length # 16384
         print(f'Set max length to {self.max_length}')
         # Initialize weights and apply final processing
         self.post_init()
         self.plora_glb_GN = nn.Parameter(torch.zeros([1, 1, 4096]))
         self.plora_sub_GN = nn.Parameter(torch.zeros([1, 1, 1, 4096]))
 
-        self.vit = build_vision_tower()
-        self.vision_proj = build_vision_projector()
+        self.vit = build_vision_tower() # 以 clip('/root/autodl-tmp/internlm-xcomposer2d5-clip') 作为 vit
+        self.vision_proj = build_vision_projector() # Sequential( (0): Linear(in_features=4096, out_features=4096, bias=True) (1): GELU(approximate='none') (2): Linear(in_features=4096, out_features=4096, bias=True) )
 
         self.vis_processor = transforms.Compose([
             transforms.ToTensor(),
@@ -137,7 +137,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         ])
 
 
-    
+
 
     def _set_gradient_checkpointing(self, module, value=False):
         if isinstance(module, InternLM2Model):
@@ -188,23 +188,28 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
             image = self.vis_processor(image).unsqueeze(0).to(self.device)
         else:
             assert isinstance(image, torch.Tensor)
+            image = image.to(self.device)
 
         img_embeds, atts_img, img_target = self.img2emb(image)
         return img_embeds
 
     def img2emb(self, image):
-        img_embeds, img_split = self.vit([image], 
+        # Ensure all tensors are on the same device
+        self.plora_glb_GN = self.plora_glb_GN.to(self.device)
+        self.plora_sub_GN = self.plora_sub_GN.to(self.device)
+
+        img_embeds, img_split = self.vit([image],
             self.plora_glb_GN, self.plora_sub_GN)
         if len(img_split) > 1:
             print ('Batch Size >1 is not supported.')
             assert 0
         img_embeds = self.vision_proj(img_embeds)
         atts_img = torch.ones(
-            img_embeds.size()[:-1], dtype=torch.long).to(img_embeds.device)
+            img_embeds.size()[:-1], dtype=torch.long).to(self.device)
 
         img_target = torch.ones(
             img_embeds.size()[:2], dtype=torch.long).to(
-                img_embeds.device) * -100
+                self.device) * -100
 
         return img_embeds, atts_img, img_target
 
@@ -252,12 +257,12 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
             prompt += f"""[UNUSED_TOKEN_146]user\n{record[0]}[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n{record[1]}[UNUSED_TOKEN_145]\n"""
         prompt += f"""[UNUSED_TOKEN_146]user\n{query}[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n"""
 
-        image_nums = len(image)
+        image_nums = len(image) # 1
         if image_nums == 1 and prompt.find('<ImageHere>') == -1:
             #print ('auto append image at the begining')
             prompt = '<ImageHere>' + prompt
 
-        parts = prompt.split('<ImageHere>')
+        parts = prompt.split('<ImageHere>') # ['', '[UNUSED_TOKEN_146]user\nCan you provide a thorough description of this image? Please output with interleaved segmentation masks for the corresponding phrases.[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n']
         wrap_embeds, wrap_im_mask = [], []
         temp_len = 0
         need_bos = True
@@ -280,23 +285,23 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
                     need_bos = False
 
                 part_embeds = self.model.tok_embeddings(
-                    part_tokens.input_ids)
+                    part_tokens.input_ids).to(self.device)
                 wrap_embeds.append(part_embeds)
-                wrap_im_mask.append(torch.zeros(part_embeds.shape[:2]))
+                wrap_im_mask.append(torch.zeros(part_embeds.shape[:2]).to(self.device))
                 temp_len += part_embeds.shape[1]
             if idx < image_nums:
                 img = self.encode_img(image[idx], hd_num)
                 wrap_embeds.append(img)
-                wrap_im_mask.append(torch.ones(img.shape[:2]))
+                wrap_im_mask.append(torch.ones(img.shape[:2]).to(self.device))
                 temp_len += img.shape[1]
-    
+
             if temp_len > self.max_length:
                 break
-    
-        wrap_embeds = torch.cat(wrap_embeds, dim=1)
-        wrap_im_mask = torch.cat(wrap_im_mask, dim=1)
-        wrap_embeds = wrap_embeds[:, :self.max_length].to(self.device)
-        wrap_im_mask = wrap_im_mask[:, :self.max_length].to(self.device).bool()
+
+        wrap_embeds = torch.cat([t.to(self.device) for t in wrap_embeds], dim=1) # device='cuda:0', dtype=torch.bfloat16
+        wrap_im_mask = torch.cat([t.to(self.device) for t in wrap_im_mask], dim=1)
+        wrap_embeds = wrap_embeds[:, :self.max_length]
+        wrap_im_mask = wrap_im_mask[:, :self.max_length].bool()
         inputs = {
             'inputs_embeds': wrap_embeds
         }
@@ -441,7 +446,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         Returns:
         """
 
-        samples = kwargs.get('samples', None)
+        samples = kwargs.get('samples', None) # None
         seg_token_mask = []
         if samples:
             infer_mode = samples.get('infer_mode', 'base')
@@ -540,7 +545,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
             output_hidden_states = outputs.hidden_states
         else:
             output_hidden_states = hidden_states
-        
+
         final_outputs = CustomCausalLMOutputWithPast(
             loss=loss,
             logits=logits,
@@ -558,7 +563,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
                                       inputs_embeds=None,
                                       im_mask=None,
                                       infer_mode='base',
-                                      **kwargs):
+                                      **kwargs): # 这里也是在循环？
         if past_key_values is not None:
             past_length = past_key_values[0][0].shape[2]
 
@@ -582,7 +587,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         # if `inputs_embeds` are passed, we only want to use them in the 1st generation step
         if inputs_embeds is not None and past_key_values is None:
             if input_ids.shape[1]>1:
-                new_input_embeds = self.model.tok_embeddings(input_ids[:, 1:]) 
+                new_input_embeds = self.model.tok_embeddings(input_ids[:, 1:])
                 inputs_embeds = torch.cat([inputs_embeds, new_input_embeds], dim=1)
                 num_tokens_to_append = input_ids[:, 1:].shape[1]
                 zeros_to_append_im_mask = torch.zeros((im_mask.shape[0], num_tokens_to_append), dtype=im_mask.dtype, device=im_mask.device)
@@ -598,7 +603,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
             'use_cache': kwargs.get('use_cache'),
             'attention_mask': attention_mask,
             'im_mask': im_mask,
-            'infer_mode': infer_mode, 
+            'infer_mode': infer_mode,
         })
         return model_inputs
 
@@ -745,7 +750,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         # remove eoa
         response = response.replace('[UNUSED_TOKEN_145]', '')
         response = response.replace('[UNUSED_TOKEN_146]', '')
-        
+
         return response
 
     @torch.no_grad()
@@ -763,7 +768,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         task: str = 'Instruction-aware Webpage Generation',
         **kwargs,
     ):
-        
+
         if seed != -1:
             set_random_seed(seed, set_cudnn=True)
         with torch.no_grad():
@@ -811,9 +816,9 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         task: str = 'Resume-to-Personal Page',
         **kwargs,
     ):
-        
+
         if seed != -1:
-            set_random_seed(seed, set_cudnn=True)       
+            set_random_seed(seed, set_cudnn=True)
         try:
             with open(inst) as fd:
                 resume = fd.read()
@@ -840,7 +845,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         html = response.replace('[UNUSED_TOKEN_146]', '')
 
         if seed != -1:
-            set_random_seed(seed, set_cudnn=True)       
+            set_random_seed(seed, set_cudnn=True)
         js_inst = ' Generate JavaScript events for the html code:' + html
         with torch.no_grad():
             inputs, im_mask, len_input_tokens = self.interleav_wrap_chat(js_inst, image)
@@ -879,7 +884,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
             f.write(out)
         return out
 
-    
+
     @torch.no_grad()
     def screen_2_webpage(
         self,
@@ -895,7 +900,7 @@ class InternLMXComposer2ForCausalLM(InternLM2PreTrainedModel):
         task: str = 'Screenshot-to-Webpage',
         **kwargs,
     ):
-        
+
         if seed != -1:
             set_random_seed(seed, set_cudnn=True)
         if len(image) == 0:

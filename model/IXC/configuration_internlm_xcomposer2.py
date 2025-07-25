@@ -75,7 +75,7 @@ class InternLMXcomposer2Config(PretrainedConfig):
     _auto_class = "AutoConfig"
 
     def __init__(  # pylint: disable=W0102
-        self,
+        self, #
         vocab_size=103168,
         hidden_size=4096,
         intermediate_size=11008,

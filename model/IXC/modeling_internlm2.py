@@ -617,8 +617,35 @@ class InternLM2DecoderLayer(nn.Module):
         super().__init__()
         self.hidden_size = config.hidden_size
 
-        self.attention = INTERNLM2_ATTENTION_CLASSES[config.attn_implementation](config=config)
-
+        self.attention = INTERNLM2_ATTENTION_CLASSES[config.attn_implementation](config=config) # config.attn_implementation："flash_attention_2"
+        """self.attention:
+        InternLM2FlashAttention2(
+            (wqkv): PLoRA(
+            in_features=4096, out_features=6144, bias=False
+            (lora_dropout): Dropout(p=0.05, inplace=False)
+        (Plora_A): Linear(in_features=4096, out_features=256, bias=False)
+        (Plora_B): Linear(in_features=256, out_features=6144, bias=False)
+        (lora_sft_A): Linear(in_features=4096, out_features=256, bias=False)
+        (lora_sft_B): Linear(in_features=256, out_features=6144, bias=False)
+        (lora_dpo_A): Linear(in_features=4096, out_features=256, bias=False)
+        (lora_dpo_B): Linear(in_features=256, out_features=6144, bias=False)
+        (lora_web_A): Linear(in_features=4096, out_features=512, bias=False)
+        (lora_web_B): Linear(in_features=512, out_features=6144, bias=False)
+        )
+        (wo): PLoRA(
+            in_features=4096, out_features=4096, bias=False
+            (lora_dropout): Dropout(p=0.05, inplace=False)
+        (Plora_A): Linear(in_features=4096, out_features=256, bias=False)
+        (Plora_B): Linear(in_features=256, out_features=4096, bias=False)
+        (lora_sft_A): Linear(in_features=4096, out_features=256, bias=False)
+        (lora_sft_B): Linear(in_features=256, out_features=4096, bias=False)
+        (lora_dpo_A): Linear(in_features=4096, out_features=256, bias=False)
+        (lora_dpo_B): Linear(in_features=256, out_features=4096, bias=False)
+        (lora_web_A): Linear(in_features=4096, out_features=512, bias=False)
+        (lora_web_B): Linear(in_features=512, out_features=4096, bias=False)
+        )
+        (rotary_emb): InternLM2DynamicNTKScalingRotaryEmbedding()
+        ) """
         self.feed_forward = InternLM2MLP(config)
         self.attention_norm = InternLM2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.ffn_norm = InternLM2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
@@ -819,7 +846,7 @@ class InternLM2Model(InternLM2PreTrainedModel):
 
         self.tok_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
 
-        self.layers = nn.ModuleList([InternLM2DecoderLayer(config) for _ in range(config.num_hidden_layers)])
+        self.layers = nn.ModuleList([InternLM2DecoderLayer(config) for _ in range(config.num_hidden_layers)]) # 创建Transformer的层堆栈，config.num_hidden_layers：32
         self.norm = InternLM2RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 
         self.gradient_checkpointing = False
@@ -938,7 +965,7 @@ class InternLM2Model(InternLM2PreTrainedModel):
         all_self_attns = () if output_attentions else None
         next_decoder_cache = () if use_cache else None
 
-        for idx, decoder_layer in enumerate(self.layers):
+        for idx, decoder_layer in enumerate(self.layers): # 这里的循环在干什么？
             if output_hidden_states:
                 all_hidden_states += (hidden_states,)
 

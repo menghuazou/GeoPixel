@@ -24,7 +24,7 @@ class SAM2Base(torch.nn.Module):
         self,
         image_encoder,
         memory_attention,
-        memory_encoder,
+        memory_encoder, # 模型组装
         num_maskmem=7,  # default 1 input frame + 6 previous frames
         image_size=512,
         backbone_stride=16,  # stride of the image backbone output

@@ -1,8 +1,17 @@
 #!/bin/bash
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
+# Use huggingface mirror to speed up downloads in China
+export HF_ENDPOINT="https://hf-mirror.com"
+# Set timeout for model downloads (in seconds)
+export HF_HUB_DOWNLOAD_TIMEOUT=600
+
 DIR=`pwd`
 
+# It's recommended to download the model first:
+# git lfs install
+# git clone https://huggingface.co/MBZUAI/GeoPixel-7B
+# Then set MODEL to local path like: export MODEL="./GeoPixel-7B"
 export MODEL="MBZUAI/GeoPixel-7B"
 # export DATA="path of data"
 export DATA="data.txt"

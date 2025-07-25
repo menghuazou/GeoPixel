@@ -73,16 +73,16 @@ class GeoPixelMetaModel:
     ):
         super(GeoPixelMetaModel, self).__init__(config)
         self.config = config
-        self.config.train_mask_decoder = getattr(self.config, "train_mask_decoder", kwargs.get("train_mask_decoder", False))
+        self.config.train_mask_decoder = getattr(self.config, "train_mask_decoder", kwargs.get("train_mask_decoder", False)) # True
         self.config.out_dim = getattr(self.config, "out_dim", kwargs.get("out_dim", 256))
-        self.vision_pretrained = kwargs.get("vision_pretrained", None)
+        self.vision_pretrained = kwargs.get("vision_pretrained", None) # 'facebook/sam2-hiera-large'
         self.initialize_geopixel_modules(self.config)
 
     def initialize_geopixel_modules(self, config):
         # grounding vision model
-        self.visual_model = build_sam2_hf(self.vision_pretrained)
+        self.visual_model = build_sam2_hf(self.vision_pretrained) # SAM2Base
 
-        self._transform = SAM2Transforms(
+        self._transform = SAM2Transforms( # model/sam2/utils/transforms.py
                     resolution=self.visual_model.image_size,
                     mask_threshold=0.0,
                     max_hole_area=0.0,
@@ -94,7 +94,7 @@ class GeoPixelMetaModel:
             (128, 128),
             (64, 64),
         ]
-        
+
         for param in self.visual_model.parameters():
             param.requires_grad = False
 
@@ -104,8 +104,8 @@ class GeoPixelMetaModel:
                 param.requires_grad = True
 
         # text projection layer
-        in_dim = config.hidden_size 
-        out_dim = config.out_dim    
+        in_dim = config.hidden_size  # 4096
+        out_dim = config.out_dim    # 256
         text_projection_layers = [
             nn.Linear(in_dim, in_dim),
             nn.ReLU(inplace=True),
@@ -129,15 +129,15 @@ class GeoPixelModel(GeoPixelMetaModel, InternLM2Model):
 
 
 class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
-    def __init__(self,config,**kwargs,):
-        
+    def __init__(self,config,**kwargs,): # "_name_or_path": "/root/autodl-tmp/models/geopixel-7b",
+
         self.ce_loss_weight = kwargs.pop("ce_loss_weight", None)
         self.dice_loss_weight = kwargs.pop("dice_loss_weight", None)
         self.bce_loss_weight = kwargs.pop("bce_loss_weight", None)
         self.seg_token_idx = kwargs.pop("seg_token_idx")
 
-        super().__init__(config)
-        self.model = GeoPixelModel(config, **kwargs)
+        super().__init__(config) # 视觉vit建立
+        self.model = GeoPixelModel(config, **kwargs) # kwargs: {'bop_token_idx': 92551, 'eop_token_idx': 92552, 'vision_pretrained': 'facebook/sam2-hiera-large'}
         self.vocab_size = config.vocab_size
         self.output = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
         self.post_init()
@@ -155,7 +155,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
             if ext.lower() in {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp','.tif'}:
                 image = Image.open(image)
                 w, h = image.size
-                _orig_hw = [(h, w)] 
+                _orig_hw = [(h, w)]
             else:
                 print ('Unknow input format', image)
                 return None
@@ -163,9 +163,9 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
             assert isinstance(image, torch.Tensor)
             _orig_hw = [image.shape[:2]]
         image = self.model._transform(image)
-        image = image[None, ...].to(self.device)
+        image = image[None, ...].to(self.device) # device='cuda:0'
         assert ( len(image.shape) == 4 and image.shape[1] == 3), f"image must be of size 1x3xHxW, got {image.shape}"
-        features = self.get_visual_embs(image)   
+        features = self.get_visual_embs(image)
         return features,_orig_hw
 
     def get_visual_embs(self, img_batch: torch.FloatTensor):
@@ -186,17 +186,17 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
             ][::-1]
             features = {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
         return features
-    
-    def forward(self, **kwargs):
-        return super().forward(**kwargs) if "past_key_values" in kwargs else self.model_forward(**kwargs)
-    
+
+    def forward(self, **kwargs): # kwargs: device='cuda:0', dtype=torch.bfloat16), 'position_ids': None, 'past_key_values': None, 'use_cache': True, 'attention_mask': None, 'im_mask': tensor([[False,  True,  True,  ..., False, False, False]], device='cuda:0'), 'infer_mode': 'base', 'return_dict': True, 'output_attentions': False, 'output_hidden_states': True
+        return super().forward(**kwargs) if "past_key_values" in kwargs else self.model_forward(**kwargs) # todo: 模型进入判断条件，两个有什么区别？ 这里是在循环？
+
     def model_forward(
             self,
             inference: bool = False,
             **kwargs,
     ):
         samples = kwargs.get('samples', None)
-        if samples and samples['data_type'][0] == 'grounding': 
+        if samples and samples['data_type'][0] == 'grounding':
             kwargs['output_hidden_states'] = True
             kwargs['use_cache'] = False
 
@@ -215,7 +215,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
             hidden_states.append(self.model.text_hidden_fcs[0](output_hidden_states[-1]))
             last_hidden_state = torch.stack(hidden_states, dim=-1).sum(dim=-1)
 
-            seg_token_mask = outputs.seg_token_mask
+            seg_token_mask = outputs.seg_token_mask.to(last_hidden_state.device)
             pred_embeddings = [states[masks] for states, masks in zip(last_hidden_state, seg_token_mask)]
             image_g_batch = torch.cat(samples['image_g'][0],dim = 0)
             image_g_features = self.get_visual_embs(image_g_batch)
@@ -252,11 +252,11 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                     ori_hw[i],
                 )
                 all_pred_masks.append(pred_masks[:, 0])
-                
+
 
             model_output = outputs
             gt_masks =  samples['masks'][0]
-            pred_masks = all_pred_masks 
+            pred_masks = all_pred_masks
 
             if inference:
                 return {
@@ -292,7 +292,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                     dice_loss(cur_pred_masks, cur_gt_masks, num_masks=cur_gt_masks.shape[0])
                     * cur_gt_masks.shape[0]
                 )
-                num_masks += cur_gt_masks.shape[0] 
+                num_masks += cur_gt_masks.shape[0]
 
             mask_bce_loss = self.bce_loss_weight * mask_bce_loss / (num_masks + 1e-8)
             mask_dice_loss = self.dice_loss_weight * mask_dice_loss / (num_masks + 1e-8)
@@ -310,7 +310,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
             outputs.mask_bce_loss = mask_bce_loss
             outputs.mask_dice_loss = mask_dice_loss
             outputs.mask_loss = mask_loss
-        else: 
+        else:
             outputs =  super().forward(**kwargs)
         return outputs
 
@@ -318,7 +318,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
         self,
         tokenizer,
         query: str,
-        images: List[Tuple[str, str]] = [],
+        images: List[Tuple[str, str]] = [], # ['images/example1.png']
         hd_num: int = 9,
         history: List[Tuple[str, str]] = [],
         max_new_tokens: int = 1024,
@@ -326,20 +326,20 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
         **kwargs,
     ):
         with torch.no_grad():
-            inputs, im_mask, _ = self.interleav_wrap_chat(query, images, history=history, hd_num=hd_num)        
+            inputs, im_mask, _ = self.interleav_wrap_chat(query, images, history=history, hd_num=hd_num)
             inputs = {
                 k: v.to(self.device)
                 for k, v in inputs.items() if torch.is_tensor(v)
-            }
+            } # 'inputs_embeds': device='cuda:0', dtype=torch.bfloat16)
             eos_token_id = [
                 tokenizer.eos_token_id,
                 #tokenizer.convert_tokens_to_ids(['[UNUSED_TOKEN_145]'])[0]
             ]
             all_pred_masks = []
-            
+
             if stream:
                 streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
-            else: 
+            else:
                 streamer = None
 
             outputs = self.generate(
@@ -359,18 +359,18 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                 output_hidden_states=True,
                 return_dict_in_generate=True,
                 **kwargs,
-            )
+            ) # model/IXC/modeling_internlm_xcomposer2.py prepare_inputs_for_generation()：huggingface 自动调用机制 → device='cuda:0', dtype=torch.bfloat16
             output_ids = outputs['sequences']
-            response = tokenizer.decode(output_ids[0].cpu().tolist(), skip_special_tokens=True)
+            response = tokenizer.decode(output_ids[0].cpu().tolist(), skip_special_tokens=True) # The image is an aerial photograph of a suburban area featuring a large building complex, likely a commercial or industrial facility, given its size and the presence of vehicles in the parking lot. The surrounding environment includes additional smaller buildings, possibly residential or storage units, and well maintained green spaces with trees, suggesting a planned community. A <p> swimming pool </p> [SEG] is visible at the bottom left, rectangular in shape and having a clear blue surface, surrounded by a well maintained lawn. At the bottom right, a <p> tennis court </p> [SEG] is characterized by its rectangular shape, the net stretched across its center, and its surrounding fencing, indicating designated play area boundaries. Additionally, <p> numerous small vehicles </p> [SEG] are parked in an organized manner on the side of a road adjacent to a large building complex, which has a simple architectural style with flat roofs, and the area appears to be active and in use during the time the photo was taken.[UNUSED_TOKEN_145]
             response = response.replace("[UNUSED_TOKEN_145]","")
             history = history + [(query, response)]
-            if len(images)==1 and isinstance(images[0], str): 
-                output_hidden_states = outputs.hidden_states[-1] 
-                seg_token_mask = output_ids[:, 1:-1] == self.seg_token_idx
+            if len(images)==1 and isinstance(images[0], str):
+                output_hidden_states = outputs.hidden_states[-1]
+                seg_token_mask = (output_ids[:, 1:-1] == self.seg_token_idx).to(output_hidden_states.device)
                 inputs_embeds_len = inputs['inputs_embeds'].size(1)
                 seg_token_mask = torch.cat(
                     [
-                        torch.zeros((seg_token_mask.shape[0], inputs_embeds_len)).bool().cuda(),
+                        torch.zeros((seg_token_mask.shape[0], inputs_embeds_len), device=output_hidden_states.device).bool(),
                         seg_token_mask,
                     ],
                     dim=1,
@@ -379,10 +379,11 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                 assert len(self.model.text_hidden_fcs) == 1
                 hidden_states.append(self.model.text_hidden_fcs[0](output_hidden_states))
                 last_hidden_state = torch.stack(hidden_states, dim=-1).sum(dim=-1)
+                seg_token_mask = seg_token_mask.to(last_hidden_state.device)
                 pred_embeddings = [states[masks] for states, masks in zip(last_hidden_state, seg_token_mask)]
-                image_g_features, ori_hw = self.encode_g_img(images[0]) 
+                image_g_features, ori_hw = self.encode_g_img(images[0])  # device='cuda:1', ori_hw:  [(800, 800)]dtype=torch.bfloat16)
 
-                for i in range(len(pred_embeddings)):
+                for i in range(len(pred_embeddings)): # len(pred_embeddings)=1
                     if (pred_embeddings[i].numel()== 0):
                         all_pred_masks.append([])
                         continue
@@ -391,7 +392,7 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                         boxes=None,
                         masks=None,
                         text_embeds=pred_embeddings[i].unsqueeze(1),
-                    )
+                    ) # device='cuda:1', dtype=torch.bfloat16)
                     batch_mode = (pred_embeddings[i].shape[0]>1)
                     high_res_features = [
                         feat_level[i].unsqueeze(0)
@@ -408,11 +409,11 @@ class GeoPixelForCausalLM(InternLMXComposer2ForCausalLM):
                         repeat_image=batch_mode,
                         multimask_output=False,
                         high_res_features=high_res_features,
-                    )
+                    ) # device(type='cuda', index=1)
                     pred_masks = self.model._transform.postprocess_masks(
                         low_res_masks,
                         ori_hw[i],
                     )
                     all_pred_masks.append(pred_masks[:, 0])
 
-        return response, all_pred_masks
+        return response, all_pred_masks # all_pred_masks: [[device(type='cuda', index=1)]]

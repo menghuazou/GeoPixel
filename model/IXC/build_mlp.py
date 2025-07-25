@@ -5,9 +5,10 @@ import math
 from transformers import CLIPVisionModel, CLIPImageProcessor, CLIPVisionConfig
 
 
-def build_vision_tower():
-    vision_tower = 'internlm/internlm-xcomposer2d5-clip'
-    return CLIPVisionTower(vision_tower)
+def build_vision_tower(local_files_only=False, cache_dir=None):
+    # vision_tower = 'internlm/internlm-xcomposer2d5-clip'
+    vision_tower = '/root/autodl-tmp/internlm-xcomposer2d5-clip'
+    return CLIPVisionTower(vision_tower, local_files_only=local_files_only, cache_dir=cache_dir)
 
 
 def build_vision_projector():
@@ -16,7 +17,7 @@ def build_vision_projector():
     mid_hidden_size = 4096
     hidden_size = 4096
 
-    mlp_gelu_match = re.match(r'^mlp(\d+)x_gelu$', projector_type)
+    mlp_gelu_match = re.match(r'^mlp(\d+)x_gelu$', projector_type) # <re.Match object; span=(0, 10), match='mlp2x_gelu'>
     if mlp_gelu_match:
         mlp_depth = int(mlp_gelu_match.group(1))
         modules = [nn.Linear(mm_hidden_size, mid_hidden_size)]
@@ -44,12 +45,14 @@ class IdentityMap(nn.Module):
 
 
 class CLIPVisionTower(nn.Module):
-    def __init__(self, vision_tower):
+    def __init__(self, vision_tower, local_files_only=False, cache_dir=None):
         super().__init__()
 
         self.is_loaded = False
 
-        self.vision_tower_name = vision_tower
+        self.vision_tower_name = vision_tower # '/root/autodl-tmp/internlm-xcomposer2d5-clip'
+        self.local_files_only = local_files_only
+        self.cache_dir = cache_dir
         #self.conv_dim = 8192
         #self.conv = torch.nn.Conv2d(1024, self.conv_dim,3,2,1)
         self.select_layer = -1
@@ -57,10 +60,19 @@ class CLIPVisionTower(nn.Module):
         self.load_model()
 
     def load_model(self):
-        self.vision_tower = CLIPVisionModel.from_pretrained(self.vision_tower_name)
-        self.vision_tower.requires_grad_(False)
-
-        self.is_loaded = True
+        try:
+            self.vision_tower = CLIPVisionModel.from_pretrained(
+                self.vision_tower_name,
+                local_files_only=self.local_files_only,
+                cache_dir=self.cache_dir
+            ) # CLIPVisionTransformer
+            self.vision_tower.requires_grad_(False)
+            self.is_loaded = True
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to load vision tower from {self.vision_tower_name}. "
+                f"Please ensure the model is available locally or set local_files_only=False. Error: {str(e)}"
+            )
 
     def resize_pos(self):
         print ('Dummy Resized')
@@ -104,7 +116,7 @@ class CLIPVisionTower(nn.Module):
             glb_img = glb_img.reshape(1,H,H,C).reshape(1,H//2,2,H//2,2,C).contiguous().permute(0,1,3,2,4,5).reshape(1,H//2,H//2,4*C).contiguous()
             temp_glb_GN = sub_GN.repeat(1, H//2, 1, 1)
             glb_img = torch.cat([glb_img, temp_glb_GN], dim=2).reshape(1,-1,4*C)
-            
+
             sub_img = image_features[1:1+B_] ### ?, N, C
             sub_img = sub_img.reshape(B_,H,H,C).reshape(B_,H//2,2,H//2,2,C).contiguous().permute(0,1,3,2,4,5).reshape(B_,-1,4*C).contiguous()
             sub_img = sub_img.reshape(1, h, w, 20, 20, -1).permute(0,1,3,2,4,5).reshape(1,h*20,w*20,4*C)
@@ -203,7 +215,7 @@ class PLoRA(nn.Linear):
                                 bias=False,
                                 device=device,
                                 dtype=dtype)
-        
+
         self.lora_web_A = nn.Linear(in_features,
                                 512,
                                 bias=False,
@@ -217,7 +229,7 @@ class PLoRA(nn.Linear):
 
         self.reset_parameters()
 
-    def reset_parameters(self):
+    def reset_parameters(self): # self: PLoRA(in_features=4096, out_features=4096, bias=False)
         if hasattr(self, 'lora_A'):
             # initialize A the same way as the default for nn.Linear and B to zero
             nn.init.kaiming_uniform_(self.lora_A.weight, a=math.sqrt(5))
@@ -245,5 +257,5 @@ class PLoRA(nn.Linear):
                 part_x = x[:1]
                 res[:1] += self.Plora_B(self.Plora_A(
                     self.lora_dropout(part_x))) * 0
-        
+
         return res.reshape(B, N, -1)
