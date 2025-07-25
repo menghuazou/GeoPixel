@@ -15,3 +15,13 @@ _C.*
 outputs/*
 checkpoints/*.pt
 demo/backend/checkpoints/*.pt
+
+# 忽略指定文件
+docs/model_download.md
+utils/check_url.py
+utils/ex05.py
+utils/ex06.py
+model/IXC/SimHei.ttf
+
+# 忽略指定目录（末尾斜杠表示目录）
+model/sam2-hiera-large/
